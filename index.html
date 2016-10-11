@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Automated Web Testing</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+	  .remark-slide, .remark-slide-container {
+		  background-image: url("static/img/webcon2016/slidesidebar.jpg");
+	  }
+	  .remark-slide-content {
+		  background-image: url("static/img/webcon2016/slidebg.jpg");
+	  }
+	  img {
+		  float:right;
+		  border-radius:22px;
+	  }
+	  img.left {
+		  float:left;
+	  }
+	  img.little {
+		  height:200px;
+	  }
+	  img.capture {
+		  border-radius:1px;
+	  }
+	  img.stretch {
+		  width:45%;
+		  padding: 10px;
+	  }
+	  img.flow{
+		  width: 100%;
+		  padding: 10px;
+		  background-color: white;
+	  }
+    </style>
+  </head>
+  <body>
+<textarea id="source">
+
+# Easy Push-Ups
+## Automated Deployment with Ansible
+
+Presented by Edward Delaporte (Busey Bank) and Joanna Delaporte (Parkland College)
+
+???
+
+# How to use ReMark
+
+Open this file in a browser to see the slide deck. Open it in a text editor to work with the Markdown.
+Press P to see your presentation notes and a presentation timer.
+Press C to clone a copy for your second monitor.
+Arrow keys to go forward or back a slide.
+Note that both HTML img tags or MarkDown image tags work here, but HTML img tag is easier to style.
+
+---
+
+# This is another slide.
+
+- It can have a list of bullet points.
+- Or a picture.
+- Or a short block of example code.
+
+???
+
+These notes appear only to the presenter.
+
+---
+
+# Example Playbook
+.small[
+```YAML
+---
+- hosts: webservers
+  vars:
+    http_port: 80
+    max_clients: 200
+  remote_user: root
+  tasks:
+  - name: ensure apache is at the latest version
+    yum: name=httpd state=latest
+  - name: write the apache config file
+    template: src=/srv/httpd.j2 dest=/etc/httpd.conf
+    notify:
+    - restart apache
+  - name: ensure apache is running (and enable it at boot)
+    service: name=httpd state=started enabled=yes
+  handlers:
+    - name: restart apache
+      service: name=httpd state=restarted
+```
+]
+
+---
+
+# Example Commands
+
+Run a playbook:
+```BASH
+ansible-playbook playbook.yml
+```
+
+</textarea>
+    <!--<script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">-->
+    <script src="static/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
