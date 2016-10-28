@@ -1,5 +1,7 @@
-## What is it
-Introduce/ explain the name Ansible
+## Intro
+What is Ansible
+    Introduce/ explain the name Ansible
+Our Experience with Ansible
 
 ## Why Bother With Ansible?
 As a developer, I need to know that my problem was not the deployment.
@@ -36,14 +38,9 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 
 ## Raw ideas
 
+Example: Take inventory - versions, hosts in groups, hosts with certain software installed
+Example: Apply updates on Ubuntu
+Example: Apply updates on Windows
 
-Take inventory - versions, hosts in groups, hosts with certain software installed
-Apply updates
-
-Once time commands for each of these would be awesome for our slides.
-
-Add windows examples
-
-Add yea/no Puppet can do this
- for most examples
-
+Idea: Add yes/no Puppet can do this, for most examples (or just highlight the bits that Puppet does not do.)
+    Not to rag on Puppet, but to help people understand how Ansible is a more extensive product.
