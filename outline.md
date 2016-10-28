@@ -11,6 +11,10 @@ I need boring push-ups.
         Deployment is: file copy, permissions, web config, app config, host dependencies, host config
 
 As an administrator...?
+As an administrator, I love parallel efficiency. I value stable custom configuration.
+As an administrator, I need repeatability. 
+The desired state needs to be achieved, no matter how many times I apply a configuration. 
+Shells are limited by their environment and available commands. Ansible can do anything python or bash or PowerShell can do. 
 
 
 ## Things Ansible Does (With Examples)
