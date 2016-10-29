@@ -56,27 +56,69 @@ and Joanna Delaporte (for Parkland College)
 
 ???
 
-# How to use ReMark
+---
 
-Open this file in a browser to see the slide deck. Open it in a text editor to work with the Markdown.
-Press P to see your presentation notes and a presentation timer.
-Press C to clone a copy for your second monitor.
-Arrow keys to go forward or back a slide.
-Note that both HTML img tags or MarkDown image tags work here, but HTML img tag is easier to style.
+## Intro
+What is Ansible
+    Introduce/ explain the name Ansible
+Our Experience with Ansible
 
 ---
 
-# This is another slide.
-
-- It can have a list of bullet points.
-- Or a picture.
-- Or a short block of example code.
-
-???
-
-These notes appear only to the presenter.
+## Why Bother With Ansible?
+As a developer, I need to know that my problem was not the deployment.
+I need boring push-ups.
+        Ansible is reliable and repeatable. 
+        File copy is reliable and repeatable, but deployment is a lot more than file copy.
+        Deployment is: file copy, permissions, web config, app config, host dependencies, host config
 
 ---
+
+## Why Bother With Ansible?
+
+As an administrator...?
+As an administrator, I love parallel efficiency. I value stable custom configuration.
+As an administrator, I need repeatability. 
+The desired state needs to be achieved, no matter how many times I apply a configuration. 
+Shells are limited by their environment and available commands. Ansible can do anything python or bash or PowerShell can do. 
+
+---
+
+## Things Ansible Does (With Examples)
+Update a custom web app
+Harden security settings
+Install EPEL
+Setup networking
+Provision a new AWS host!
+Create user accounts
+Update Windows (New)
+
+---
+
+## Get Started with Ansible
+Show a Hosts file.
+
+Show Ansible Galaxy
+    Mention and link to Jeff Gearling and Burt VV - creators of great Ansible roles
+
+Give example commands to check out a playbook from Ansible galaxy.
+
+Show the -VVVV flag. (Debug your playbooks)
+Link a Guide to SSH. (Use it to do anything Ansible cannot yet do)
+
+Give example commands to contribute to an Ansible Galaxy playbook.
+    Or Link to a Guide to Git? (Use it to track / share your own work.)
+
+---
+
+## Raw ideas
+
+Example: Take inventory - versions, hosts in groups, hosts with certain software installed
+Example: Apply updates on Ubuntu
+Example: Apply updates on Windows
+
+Idea: Add yes/no Puppet can do this, for most examples (or just highlight the bits that Puppet does not do.)
+    Not to rag on Puppet, but to help people understand how Ansible is a more extensive product.
 
 # The Developer and the Admin
 ## Can be Friends
