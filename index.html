@@ -59,45 +59,62 @@ Joanna Delaporte, Systems Administrator for Parkland College
 ---
 
 ## What is Ansible
+
+???
+
     Introduce/ explain the name Ansible
 Our Experience with Ansible
 
 ---
 
 ## Why Bother With Ansible?
-As a developer, I need to know that my problem was not the deployment.
-I need boring push-ups.
+
+- As a developer, I need to know that my problem was not the deployment.
+- I need boring push-ups.
+- Deployment is: file copy, permissions, web config, app config, host dependencies, host config
+
+??? 
         Ansible is reliable and repeatable. 
         File copy is reliable and repeatable, but deployment is a lot more than file copy.
-        Deployment is: file copy, permissions, web config, app config, host dependencies, host config
 
 ---
 
 ## Why Bother With Ansible?
 
-As an administrator...?
-As an administrator, I love parallel efficiency. I value stable custom configuration.
-As an administrator, I need repeatability. 
+- As an administrator, I love parallel efficiency. I value stable custom configuration.
+- As an administrator, I need repeatability. 
+
+??? 
+
 The desired state needs to be achieved, no matter how many times I apply a configuration. 
 Shells are limited by their environment and available commands. Ansible can do anything python or bash or PowerShell can do. 
 
 ---
 
-## Things Ansible Does (With Examples)
-Update a custom web app
-Harden security settings
-Install EPEL
-Setup networking
-Provision a new AWS host!
-Create user accounts
-Update Windows (New)
+## Things Ansible Does
+- Update a custom web app
+- Harden security settings
+- Install EPEL
+- Setup networking
+- Provision a new AWS host!
+- Create user accounts
+- Update Windows (New!)
+
+???
+ (Add lots of Examples)
 
 ---
 
 ## Get Started with Ansible
-Show a Hosts file.
 
-Show Ansible Galaxy
+- Hosts file
+- Command Line Reference
+- Ansible Galaxy
+
+???
+TODO: Show a Hosts file.
+
+TODO: Show Ansible Galaxy
     Mention and link to Jeff Gearling and Burt VV - creators of great Ansible roles
 
 Give example commands to check out a playbook from Ansible galaxy.
@@ -110,115 +127,7 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 
 ---
 
-## Raw ideas
-
-Example: Take inventory - versions, hosts in groups, hosts with certain software installed
-Example: Apply updates on Ubuntu
-Example: Apply updates on Windows
-
-Idea: Add yes/no Puppet can do this, for most examples (or just highlight the bits that Puppet does not do.)
-    Not to rag on Puppet, but to help people understand how Ansible is a more extensive product.
-
-# The Developer and the Admin
-## Can be Friends
-
-???
-
-
-# The Developer and The Admin can be Friends
-
-## Admin Flaws
-Worry too much.
-Don't like having fun.
-
-## Developer Flaws
-Never write anything down.
-Nothing they build works.
-
-## Developer Lens
-People need this to work, right now!
-Deployment is boring, I don't want to think about it.
-
-## Admin Lens
-People need this to work tomorrow and every day after.
-Deployment *should* be boring, we probably *should* think about it.
-
-## Shared Lenses
-I can't reliably do my job unless I know that what we tried to deploy got fully deployed, where it needs to go.
-
-Ansible is a DevOps tool.
-Other DevOps tools: PowerShell, MSI, RPM, Git, KShell
-DevOps philosophy is that Development and Operations are a team.
-    - Both should write Ansible Playbooks
-    - Both should be able to run Playbooks
-    - Both should be able to maintain playbooks
-
----
-
-# Ansible Philosophy
-
----
-
-# Example Playbook
-.small[
-```YAML
----
-- hosts: webservers
-  vars:
-    http_port: 80
-    max_clients: 200
-  remote_user: root
-  tasks:
-  - name: ensure apache is at the latest version
-    yum: name=httpd state=latest
-  - name: write the apache config file
-    template: src=/srv/httpd.j2 dest=/etc/httpd.conf
-    notify:
-    - restart apache
-  - name: ensure apache is running (and enable it at boot)
-    service: name=httpd state=started enabled=yes
-  handlers:
-    - name: restart apache
-      service: name=httpd state=restarted
-```
-]
-
----
-
-# Example Commands
-
-Run a playbook:
-```BASH
-ansible-playbook playbook.yml
-```
-
----
-
-# Ansible Verbosity
-
-```BASH
--VVVV
-```
-
-???
-
-Also controls SSH verbosity.
-
----
-
-# Bonus Slide: Make a Makefile
-
-```Make
-deploy:
-    ansible-playbook playbook.yml
-
-```
-
-???
-
-Not exactly what Make is for.
-But pretty much what Make is for.
-Even non-Make users can read your exact commands and even and paste them.
+# Answer Questions
 
 </textarea>
     <!--<script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">-->
