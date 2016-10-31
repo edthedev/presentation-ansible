@@ -167,18 +167,44 @@ ansible-chicago-apps
 - [Ansible Module Index](http://docs.ansible.com/ansible/modules_by_category.html)
 - [Ansible Guide to AWS](http://docs.ansible.com/ansible/guide_aws.html)
 - [Ansible Galaxy](https://galaxy.ansible.com/)
+- [Jeff Gearling on Ansible Galaxy](https://galaxy.ansible.com/geerlingguy/)
+- [Bert Van Vreckem on Ansible Galaxy](https://galaxy.ansible.com/bertvv/)
+
+```BASH
+	ansible-galaxy install burtvv.bind
+```
 
 ???
 
-Mention and link to Jeff Gearling and Burt VV - creators of great Ansible roles
-
-Give example commands to check out a playbook from Ansible galaxy.
+- Jeff Gearling wrote the book on Ansible
+- Burt VV has a lot of Enterprise Linux Playbooks for Tomcat, Apache, Bind, Pxe(pixy)
 
 Show the -VVVV flag. (Debug your playbooks)
 Link a Guide to SSH. (Use it to do anything Ansible cannot yet do)
 
 Give example commands to contribute to an Ansible Galaxy playbook.
     Or Link to a Guide to Git? (Use it to track / share your own work.)
+
+---
+
+## Configure Ansible
+
+???
+
+- You can have multiple roles paths...
+
+---
+
+## Debug Your Playbooks
+
+```BASH
+	ansible-playbook -VVVV playbook.yml
+```
+
+???
+
+- That looks like the SSH verbosity flag.
+- Becuase it is the SSH verbosity flag.
 
 ---
 
