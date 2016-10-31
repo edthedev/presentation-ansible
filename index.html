@@ -60,7 +60,7 @@ Joanna Delaporte, Systems Administrator for Parkland College
 
 ## What is Ansible
 
-- Repeatable Automation
+- [Simple IT Automation](https://www.ansible.com/)
 - Configuration
 - Deployment
 
@@ -111,11 +111,34 @@ Shells are limited by their environment and available commands. Ansible can do a
 
 ## Get Started with Ansible
 
-- Hosts file
-- Command Line Reference
-- Ansible Galaxy
+You need:
+- [Inventory File aka Hosts File](http://docs.ansible.com/ansible/intro_inventory.html) on Ansible Control Machine
+- SSH Access to the target machine.
+- Sudo rights on the target machine (for most tasks)
+- [Ansible Command Line Reference](http://docs.ansible.com/ansible/intro_adhoc.html)
 
 ???
+
+Tips
+- All you need is SSH Access and Sudo rights on the target.
+- You need sudo access as normal on the target (most configurations)
+- AWS = Amazon Web Services
+- pip install boto on the Ansible control machine / hive queen
+- Usually start with Root password.
+- For AWS, use AWS user secret and secret key as ENV variables or modules arguments.
+
+---
+
+## Getting Things Done with Ansible
+
+### Start Using Playbooks
+- [Ansible Module Index](http://docs.ansible.com/ansible/modules_by_category.html)
+- [Ansible Guide to AWS](http://docs.ansible.com/ansible/guide_aws.html)
+- [Ansible Galaxy](https://galaxy.ansible.com/)
+
+???
+
+
 TODO: Show a Hosts file.
 
 TODO: Show Ansible Galaxy
