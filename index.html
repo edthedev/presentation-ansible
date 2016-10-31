@@ -164,23 +164,42 @@ ansible-chicago-apps
 ## Getting Things Done with Ansible
 
 ### Start Using Playbooks
+Install a Role:
+```BASH
+	ansible-galaxy install burtvv.bind
+```
+
+Run a Playbook:
+```BASH
+	ansible-playbook -VVVV playbook.yml
+```
+
 - [Ansible Module Index](http://docs.ansible.com/ansible/modules_by_category.html)
 - [Ansible Guide to AWS](http://docs.ansible.com/ansible/guide_aws.html)
 - [Ansible Galaxy](https://galaxy.ansible.com/)
 - [Jeff Gearling on Ansible Galaxy](https://galaxy.ansible.com/geerlingguy/)
 - [Bert Van Vreckem on Ansible Galaxy](https://galaxy.ansible.com/bertvv/)
 
-```BASH
-	ansible-galaxy install burtvv.bind
-```
 
 ???
 
+Ansible Galaxy Role
+- Is a directory.
+- Includes: variables, handlers, tasks, templates
+- templates are Jinja templates (typically for config files)
+
+Ansible Playbook
+- is a YAML file
+- includes ansible commands to run
+- Some commands are included with Ansible.
+- Some commands will come from roles you have installed.
+- -VVVV looks like the SSH verbosity flag.
+- Becuase it is the SSH verbosity flag.
+
+Ansible Users Linked
 - Jeff Gearling wrote the book on Ansible
 - Burt VV has a lot of Enterprise Linux Playbooks for Tomcat, Apache, Bind, Pxe(pixy)
 
-Show the -VVVV flag. (Debug your playbooks)
-Link a Guide to SSH. (Use it to do anything Ansible cannot yet do)
 
 Give example commands to contribute to an Ansible Galaxy playbook.
     Or Link to a Guide to Git? (Use it to track / share your own work.)
@@ -197,14 +216,6 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 
 ## Debug Your Playbooks
 
-```BASH
-	ansible-playbook -VVVV playbook.yml
-```
-
-???
-
-- That looks like the SSH verbosity flag.
-- Becuase it is the SSH verbosity flag.
 
 ---
 
@@ -346,7 +357,7 @@ playbook.yml - Configure Apache on the Target
 
 ???
 ???
-
+Link a Guide to SSH. (Use it to do anything Ansible cannot yet do)
 Do you like your fellow programmers? Check in an Ansible playbook.
 
 </textarea>
