@@ -207,6 +207,45 @@ Give example commands to contribute to an Ansible Galaxy playbook.
         - python-pip
         - openssl
         - mod_ssl
+```
+
+???
+
+- Set variables at the top for reuse.
+- Pass in variables on command line.
+- I use this to more easily switch between Debian and CentOS
+- I tend to use a Makefile as my starting point. "make update"
+
+---
+
+### Ansible Playbook - Deploy a Custom Web App
+
+```BASH
+HOSTNAME=ansible-chicago-apps
+BRANCH=master
+PLAYBOOK=wsgi_playbook.yml
+VERBOSE="-v"
+# VERBOSE="-vvvv"
+
+ifeq ($(APP),goals)
+	REPO=git@bitbucket.org:edthedev/goals.git
+	FQDN=mygoal.space
+endif
+
+update:
+	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+
+fix:
+	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+
+```
+
+---
+
+
+### Ansible Playbook - Deploy a Custom Web App
+
+```YAML
     - git: 
         dest="{{ app_home }}" 
         repo="{{ git_repo }}"
