@@ -47,7 +47,7 @@
   <body>
 <textarea id="source">
 
-# Easy Push-Ups
+# Boring Push-Ups
 ## Automated Deployment with Ansible
 
 Presented by 
@@ -142,7 +142,7 @@ Tips
 
 ## Example Ansible Inventory File
 
-```
+```BASH
 [home]
 shockwave
 ratchet
@@ -221,8 +221,43 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 ---
 
 
-### Ansible Playbook - Provision an AWS Host
+#### Ansible Playbook - Provision an AWS Host
 
+```YAML
+---
+- hosts: localhost
+  become: no
+  vars_files:
+  - vars/aws_cli_credentials.yml
+  - vars/aws_allinone.yml
+  - vars/ec2_micro_centos7.yml
+  - name: provision a new instance with swap and log volumes
+    ec2:      
+      image: "{{ aws_image }}"
+      instance_type: "{{ aws_instance_type }}"
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      keypair: "{{ aws_keypair }}"
+      count: 1
+      instance_tags: "{'Name': 'examplehost','client':'{{ansible_user_id}}','role':'aws_allinone' }"
+      region: "{{ aws_region }}"
+      groups: ['default', 'aws_allinone']
+      vpc_subnet_id: "{{ aws_vpc_subnet }}"
+      wait: true
+      volumes:
+      - device_name: /dev/xvds
+        volume_type: gp2
+        volume_size: 4
+		# ...
+    register: ec2_info
+
+```
+
+???
+
+Probably worth talking about:
+    ec2_group:
+    ec2_snapshot:
 
 ---
 
