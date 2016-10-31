@@ -184,10 +184,37 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 
 ### Ansible Playbook - Provision an AWS Host
 
+
 ---
 
 ### Ansible Playbook - Deploy a Custom Web App
 
+Makefile
+```BASH
+HOSTNAME=ansible-chicago-apps
+BRANCH=master
+PLAYBOOK=playbook.yml
+VERBOSE="-v"
+# VERBOSE="-vvvv"
+
+ifeq ($(APP),goals)
+	REPO=git@bitbucket.org:edthedev/goals.git
+	FQDN=mygoal.space
+endif
+
+update:
+	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+
+fix:
+	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+
+```
+
+---
+
+### Ansible Playbook - Deploy a Custom Web App
+
+playbook.yml
 ```YAML
 - hosts: "{{ hosts }}"
   vars:
@@ -216,37 +243,15 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 - I use this to more easily switch between Debian and CentOS
 - I tend to use a Makefile as my starting point. "make update"
 
+
 ---
 
 ### Ansible Playbook - Deploy a Custom Web App
 
-```BASH
-HOSTNAME=ansible-chicago-apps
-BRANCH=master
-PLAYBOOK=wsgi_playbook.yml
-VERBOSE="-v"
-# VERBOSE="-vvvv"
-
-ifeq ($(APP),goals)
-	REPO=git@bitbucket.org:edthedev/goals.git
-	FQDN=mygoal.space
-endif
-
-update:
-	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
-
-fix:
-	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
-
-```
-
----
-
-
-### Ansible Playbook - Deploy a Custom Web App
-
+playbook.yml - Install Python App
 ```YAML
-    - git: 
+    - name: install app source code
+	  git: 
         dest="{{ app_home }}" 
         repo="{{ git_repo }}"
         update=yes
@@ -256,21 +261,25 @@ fix:
         accept_hostkey=True
       notify: restart_apache
       tags: update
-    # The application database.
-    - pip: 
-        # executable="/usr/bin/pip-3.2"
-        requirements="{{ app_home }}/requirements.txt"
     - name: app readable by apache
       file: 
         path="{{ app_home }}"
         group="{{ httpd_group }}"
         recurse=yes
         mode=776
-    - file:
-        state=link
-        src=/usr/share/zoneinfo/America/Chicago
-        dest=/etc/localtime
-        force=yes
+    - name: install prerequisites
+	  pip: 
+        # executable="/usr/bin/pip-3.2"
+        requirements="{{ app_home }}/requirements.txt"
+```
+
+---
+
+
+### Ansible Playbook - Deploy a Custom Web App
+
+playbook.yml - Configure Apache
+```YAML
     - template: src="{{ conf_temp }}" dest="{{ httpd_sites }}/{{ app_name }}.conf"
       notify: restart_apache
       tags: update
@@ -290,7 +299,19 @@ fix:
     - name: restart_apache
       service: name="{{ httpd_service }}" state=restarted
       tags: fixed
+```
 
+---
+
+### Ansible Playbook - Deploy a Custom Web App
+
+playbook.yml - Set the Server Time Zone
+```YAML
+    - file:
+        state=link
+        src=/usr/share/zoneinfo/America/Chicago
+        dest=/etc/localtime
+        force=yes
 ```
 
 ---
