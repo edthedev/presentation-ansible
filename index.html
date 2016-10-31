@@ -169,12 +169,8 @@ ansible-chicago-apps
 - [Ansible Galaxy](https://galaxy.ansible.com/)
 
 ???
-???
 
-
-
-TODO: Show Ansible Galaxy
-    Mention and link to Jeff Gearling and Burt VV - creators of great Ansible roles
+Mention and link to Jeff Gearling and Burt VV - creators of great Ansible roles
 
 Give example commands to check out a playbook from Ansible galaxy.
 
@@ -183,6 +179,80 @@ Link a Guide to SSH. (Use it to do anything Ansible cannot yet do)
 
 Give example commands to contribute to an Ansible Galaxy playbook.
     Or Link to a Guide to Git? (Use it to track / share your own work.)
+
+---
+
+### Ansible Playbook - Provision an AWS Host
+
+---
+
+### Ansible Playbook - Deploy a Custom Web App
+
+```YAML
+- hosts: "{{ hosts }}"
+  vars:
+    - app_name: "{{ app }}"
+    - app_home: "/var/www/{{ app_name }}"
+    - app_wsgi: "{{ app_home }}/app.wsgi"
+    - git_branch: "{{ branch }}"
+  tasks:
+    - yum:
+        name="{{ item }}"
+        state=installed
+      with_items:
+        - "{{ httpd_service }}"
+        - epel-release
+        - git
+        - mod_wsgi
+        - python-pip
+        - openssl
+        - mod_ssl
+    - git: 
+        dest="{{ app_home }}" 
+        repo="{{ git_repo }}"
+        update=yes
+        force=yes
+        depth=1
+        version="{{ git_branch }}"
+        accept_hostkey=True
+      notify: restart_apache
+      tags: update
+    # The application database.
+    - pip: 
+        # executable="/usr/bin/pip-3.2"
+        requirements="{{ app_home }}/requirements.txt"
+    - name: app readable by apache
+      file: 
+        path="{{ app_home }}"
+        group="{{ httpd_group }}"
+        recurse=yes
+        mode=776
+    - file:
+        state=link
+        src=/usr/share/zoneinfo/America/Chicago
+        dest=/etc/localtime
+        force=yes
+    - template: src="{{ conf_temp }}" dest="{{ httpd_sites }}/{{ app_name }}.conf"
+      notify: restart_apache
+      tags: update
+    - name: use new config file
+      lineinfile:
+        dest="{{ httpd_conf }}"
+        state=present
+        line="include {{ httpd_sites }}/{{ app_name }}.conf"
+      notify: restart_apache
+    - name: Listen on port 443
+      lineinfile:
+        dest="{{ httpd_conf }}"
+        state=present
+        line='Listen 443'
+      notify: restart_apache
+  handlers:
+    - name: restart_apache
+      service: name="{{ httpd_service }}" state=restarted
+      tags: fixed
+
+```
 
 ---
 
