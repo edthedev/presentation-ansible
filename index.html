@@ -302,6 +302,159 @@ Probably worth talking about:
     - lvm2
 ```
 
+???
+
+- Skip the traditional loss of train of thought because some important tool is not installed.
+
+---
+
+#### Ansible Playbook - Provision an AWS Host
+
+```YAML
+  - name: set hostname for AWS host
+    hostname:
+      name: "{{inventory_hostname}}.{{domain|lower}}"
+
+  - name: add hostname to network file
+    lineinfile:
+      dest: /etc/sysconfig/network
+      line: "HOSTNAME={{ inventory_hostname }}.{{domain|lower}}"
+
+  - name: change cloud init to preserve hostname
+    lineinfile:
+      dest: /etc/cloud/cloud.cfg
+      insertbefore: EOF
+      line: "preserve_hostname: true"
+```
+
+???
+
+- Set a host name 
+- Make AWS respect the host name 
+
+---
+
+#### Ansible Playbook - Provision an AWS Host
+
+```YAML
+  - name: make swap volume
+    shell: "mkswap /dev/xvds"
+    ignore_errors: yes
+  
+  - name: turn on swap volume
+    shell: "swapon /dev/xvds"
+    ignore_errors: yes
+  
+  - name: add swap to fstab
+    mount: 
+      state: present
+      src: /dev/xvds
+      name: swap
+      fstype: swap
+      passno: 0
+      dump: 0
+```
+
+???
+
+Swap can be nice.
+We are skipping over so much in this example.
+
+---
+
+#### Ansible Playbook - Provision an AWS Host
+
+```YAML
+#Need to reboot because the lvms won't be recognized until we do.
+  - name: Restart server
+    command: /sbin/shutdown -r +1
+    async: 0
+    poll: 0
+    ignore_errors: true
+ 
+  - name: wait for instance to listen on port:22
+    become: no
+    local_action: wait_for 
+                  state=started 
+                  host="{{ hostvars['examplehost']['ansible_host']}}" 
+                  delay=70
+                  port=22
+
+  - name: wait for boot process to finish
+    pause: minutes=1
+```
+
+???
+
+Need to reboot? No problem.
+
+---
+
+#### Ansible Playbook - Provision an AWS Host
+
+```YAML
+  post_tasks:
+  - name: make sure home directories are mounted
+    stat:
+      path: /home
+      get_md5: False
+      get_checksum: False
+    register: homedirs
+```
+
+---
+
+#### Ansible Playbook - Provision an AWS Host
+
+```YAML
+#### CREATE USER DATABASE #######
+### uncomment to create users ###
+
+  - name: add users from included play
+    include: aws_addusers_include.yml
+
+#### Manage quotacheck #########
+  - name: turn quotas off
+    command: /sbin/quotaoff -av
+
+  - name: (re)create aquota.user file
+    command: /sbin/quotacheck -cu /quotadir
+
+  - name: turn quotas back on
+    command: /sbin/quotaon -avu
+
+  - name: create cron job to encourage quotacheck
+    blockinfile: 
+      dest: /etc/cron.daily/quotacheck
+      create: yes
+      state: present 
+      backup: yes
+      marker: "# {mark} ANSIBLE MANAGED BLOCK for quotacheck"
+      block: |
+        #!/bin/bash
+        touch /forcequotacheck
+```
+
+???
+
+Hopefully at this point you are remembering all the little things you sometimes forget when setting up a server.
+
+Lesson: Ansible doesn't forget. Ansible removes surprises.
+
+---
+#### Ansible Playbook - Provision an AWS Host
+
+```YAML
+  - name: install python34
+    include: aws_python34.yml
+    creates: /bin/pip3
+```
+
+???
+
+Include a whole other file full of tasks.
+
+---
 
 ### Ansible Playbook - Deploy a Custom Web App
 
