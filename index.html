@@ -119,6 +119,7 @@ You need:
 
 ???
 
+
 Tips
 - All you need is SSH Access and Sudo rights on the target.
 - You need sudo access as normal on the target (most configurations)
@@ -126,6 +127,32 @@ Tips
 - pip install boto on the Ansible control machine / hive queen
 - Usually start with Root password.
 - For AWS, use AWS user secret and secret key as ENV variables or modules arguments.
+
+---
+
+## Example Ansible Inventory File
+
+```
+[home]
+shockwave
+ratchet
+admins-mac-mini.local
+minecraft.delaporte.us
+
+[vagrant]
+192.168.33.10
+
+[remote]
+learn.delaporte.us
+ansible-chicago-apps
+```
+
+???
+
+- Anything that SSH can resolve works.
+- Short name, IP, FQDN all work.
+- .ssh/config short names also work.
+- Works with localhost screwy networked virtual machines, too.
 
 ---
 
@@ -139,7 +166,6 @@ Tips
 ???
 
 
-TODO: Show a Hosts file.
 
 TODO: Show Ansible Galaxy
     Mention and link to Jeff Gearling and Burt VV - creators of great Ansible roles
@@ -155,6 +181,16 @@ Give example commands to contribute to an Ansible Galaxy playbook.
 ---
 
 # Answer Questions
+
+---
+
+# Bonus Resources
+
+- [Ansible as Vagrant Provisioner](https://www.vagrantup.com/docs/provisioning/ansible.html)
+
+???
+
+Do you like your fellow programmers? Check in an Ansible playbook.
 
 </textarea>
     <!--<script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">-->
