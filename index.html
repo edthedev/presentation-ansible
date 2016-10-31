@@ -203,10 +203,12 @@ ifeq ($(APP),goals)
 endif
 
 update:
-	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) 
+	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
 
 fix:
-	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) --extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) 
+	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
 
 ```
 
@@ -214,7 +216,7 @@ fix:
 
 ### Ansible Playbook - Deploy a Custom Web App
 
-playbook.yml
+playbook.yml - Make the Target Become a Web Server
 ```YAML
 - hosts: "{{ hosts }}"
   vars:
@@ -234,6 +236,11 @@ playbook.yml
         - python-pip
         - openssl
         - mod_ssl
+    - file:
+        state=link
+        src=/usr/share/zoneinfo/America/Chicago
+        dest=/etc/localtime
+        force=yes
 ```
 
 ???
@@ -248,7 +255,7 @@ playbook.yml
 
 ### Ansible Playbook - Deploy a Custom Web App
 
-playbook.yml - Install Python App
+playbook.yml - Install Our Custom Python App on the Target
 ```YAML
     - name: install app source code
 	  git: 
@@ -278,7 +285,7 @@ playbook.yml - Install Python App
 
 ### Ansible Playbook - Deploy a Custom Web App
 
-playbook.yml - Configure Apache
+playbook.yml - Configure Apache on the Target
 ```YAML
     - template: src="{{ conf_temp }}" dest="{{ httpd_sites }}/{{ app_name }}.conf"
       notify: restart_apache
@@ -307,11 +314,6 @@ playbook.yml - Configure Apache
 
 playbook.yml - Set the Server Time Zone
 ```YAML
-    - file:
-        state=link
-        src=/usr/share/zoneinfo/America/Chicago
-        dest=/etc/localtime
-        force=yes
 ```
 
 ---
