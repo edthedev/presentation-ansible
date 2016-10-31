@@ -1,0 +1,367 @@
+---
+- hosts: localhost
+  become: no
+  vars_files:
+  - vars/aws_cli_credentials.yml
+  - vars/aws_allinone.yml
+  - vars/ec2_micro_centos7.yml
+    
+  tasks:
+  - name: remove old ssh host key
+    known_hosts:
+      name: "{{ hostvars['examplehost']['ansible_host'] }}"
+      state: absent
+
+  - name: get instance id for current aws_allinone
+    ec2_remote_facts:
+      aws_access_key: "{{aws_key}}"
+      aws_secret_key: "{{aws_secret}}"
+      region: "{{aws_region}}"
+      filters:
+        ip-address: "{{ hostvars['examplehost']['ansible_host'] }}"
+    register: aws_allinone_info
+    
+  - name: stop existing aws_allinone
+    ec2: 
+      aws_access_key: "{{aws_key}}"
+      aws_secret_key: "{{aws_secret}}"
+      region: "{{aws_region}}"
+      state: stopped
+      instance_ids: "{{item.id}}"
+    with_items: "{{aws_allinone_info.instances}}"
+
+## Need public/worldwide access to http and ssh
+#
+  - name: set up security group tcp ports
+    ec2_group:
+      aws_access_key: "{{aws_key}}"
+      aws_secret_key: "{{aws_secret}}"
+      region: "{{aws_region}}"
+      vpc_id: "{{aws_acct_vpc_id}}"
+      name: aws_allinone
+      description: security group for aws_allinone
+      purge_rules: false
+      rules:
+      - proto: tcp
+        from_port: "{{item}}"
+        to_port: "{{item}}"
+        cidr_ip: 0.0.0.0/0
+    with_items: 
+    - "{{tcp_ports}}"
+
+  - name: set up security group udp ports
+    ec2_group:
+      aws_access_key: "{{aws_key}}"
+      aws_secret_key: "{{aws_secret}}"
+      region: "{{aws_region}}"
+      vpc_id: "{{aws_acct_vpc_id}}"
+      name: aws_allinone
+      description: security group for aws_allinone
+      purge_rules: false
+      rules:
+      - proto: udp
+        from_port: "{{item}}"
+        to_port: "{{item}}"
+        cidr_ip: 0.0.0.0/0
+    with_items: 
+    - "{{udp_ports}}"
+
+#    last_snapshot_min_age: 1440 #(min)
+#    can be used to
+#    limit snapshots to once per day
+  - name: snapshot current backup volume
+    ec2_snapshot:
+      aws_access_key: "{{aws_key}}"
+      aws_secret_key: "{{aws_secret}}"
+      region: "{{aws_region}}"
+      state: present
+      wait: yes
+      wait_timeout: 0 #0 means Never timeout(sec)
+      description: "snapshot of xvdj from backup server taken {{ansible_date_time.iso8601}}"
+      instance_id: "i-a34c2967"
+      device_name: "/dev/xvdj"
+      snapshot_tags:
+        frequency: random
+        client: "csit-ansible"
+        Name: "backups_{{ansible_date_time.iso8601}}"
+    register: new_snapshot
+  
+  - debug:
+      msg: "{{new_snapshot}}"
+  
+  - name: provision a new instance with swap and log volumes
+    ec2:      
+      image: "{{ aws_image }}"
+      instance_type: "{{ aws_instance_type }}"
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      keypair: "{{ aws_keypair }}"
+      count: 1
+      instance_tags: "{'Name': 'examplehost','client':'{{ansible_user_id}}','role':'aws_allinone' }"
+      region: "{{ aws_region }}"
+      groups: ['default', 'aws_allinone']
+      vpc_subnet_id: "{{ aws_vpc_subnet }}"
+      wait: true
+      volumes:
+      - device_name: /dev/xvds
+        volume_type: gp2
+        volume_size: 4
+        delete_on_termination: true
+      - device_name: /dev/xvdl
+        volume_type: gp2
+        volume_size: 6
+        delete_on_termination: true
+      - device_name: /dev/xvdm
+        volume_type: gp2
+        volume_size: 10
+        delete_on_termination: false
+      - device_name: /dev/xvdz
+        volume_type: gp2
+        volume_size: 500
+        snapshot: "{{new_snapshot.snapshot_id}}"
+        delete_on_termination: false
+    register: ec2_info
+      
+  - debug: var=item
+    with_items: "{{ ec2_info.instance_ids }}"
+ 
+  - name: associate reserved elastic ip to the new instance
+    ec2_eip:
+      in_vpc: true
+      device_id: "{{item.id}}"
+      public_ip: "{{ hostvars['examplehost']['ansible_host'] }}"
+      reuse_existing_ip_allowed: yes
+      region: "{{aws_region}}"
+    with_items:
+    - "{{ ec2_info.instances }}"
+
+  - name: wait for instance to listen on port:22
+    wait_for:
+      state: started
+      host: "{{ hostvars['examplehost']['ansible_host'] }}"
+      port: 22
+ 
+  - name: wait for boot process to finish
+    pause: minutes=2
+
+- hosts: aws_allinone
+  user: centos
+  become: yes
+  roles:
+  - sudoers #create csit-ansible user and deletes root password hash
+
+- hosts: aws_allinone
+  become: yes
+  vars_files:
+  - vars/aws_allinone.yml
+#  Include these in aws_addusers.yml include file:
+#  - vars/ipa_usergroups.yml
+#  - vars/studentdict.yml
+#  - vars/staffstudict.yml
+#  - vars/staffdict.yml
+  pre_tasks:
+  - name: install useful packages
+    package: 
+      name: "{{ item }}" 
+      state: present
+    with_items:
+    - vim
+    - lvm2
+
+  - name: set hostname for AWS host
+    hostname:
+      name: "{{inventory_hostname}}.{{domain|lower}}"
+
+  - name: add hostname to network file
+    lineinfile:
+      dest: /etc/sysconfig/network
+      line: "HOSTNAME={{ inventory_hostname }}.{{domain|lower}}"
+
+  - name: change cloud init to preserve hostname
+    lineinfile:
+      dest: /etc/cloud/cloud.cfg
+      insertbefore: EOF
+      line: "preserve_hostname: true"
+
+  - name: make swap volume
+    shell: "mkswap /dev/xvds"
+    ignore_errors: yes
+  
+  - name: turn on swap volume
+    shell: "swapon /dev/xvds"
+    ignore_errors: yes
+  
+  - name: add swap to fstab
+    mount: 
+      state: present
+      src: /dev/xvds
+      name: swap
+      fstype: swap
+      passno: 0
+      dump: 0
+ 
+  - name: make filesystem for logging
+    filesystem:
+      dev: /dev/xvdl
+      fstype: ext4
+
+  - name: add log volume to fstab
+    mount: 
+      state: mounted
+      src: /dev/xvdl
+      name: /var/log
+      fstype: ext4
+      passno: 0
+      dump: 0
+
+  - name: make filesystem for mail volume
+    filesystem:
+      dev: /dev/xvdm
+      fstype: ext4
+
+  - name: add mail volume to fstab
+    mount: 
+      state: mounted
+      src: /dev/xvdm
+      name: /var/spool/mail
+      fstype: ext4
+      passno: 0
+      dump: 0
+
+ ## Set up logical volumes on the data volume
+## The logical volumes in the data image are 
+#/dev/VGMagneticBU/lv_magstaff   /mnt/magstaff   ext4    defaults,nofail 0 2
+#/dev/VGMagneticBU/lv_magstu     /mnt/magstu     ext4    defaults,nofail 0 2
+#/dev/VGMagneticBU/lv_magsys     /mnt/magsys     ext4    defaults,nofail 0 2
+
+  - name: add staff logical volume to fstab
+    mount: 
+      state: mounted
+      src: /dev/VGMagneticBU/lv_magstaff
+      name: /home/staff
+      opts: defaults,nofail
+      fstype: ext4
+      passno: 2
+      dump: 2
+
+  - name: add student logical volume to fstab with user quota option
+    mount: 
+      state: mounted
+      src: /dev/VGMagneticBU/lv_magstu
+      name: /quotadir
+      opts: defaults,nofail,usrquota,nosuid
+      fstype: ext4
+      passno: 2
+      dump: 2
+
+#Need to reboot because the lvms won't be recognized until we do.
+  - name: Restart server
+    command: /sbin/shutdown -r +1
+    async: 0
+    poll: 0
+    ignore_errors: true
+ 
+  - name: wait for instance to listen on port:22
+    become: no
+    local_action: wait_for 
+                  state=started 
+                  host="{{ hostvars['examplehost']['ansible_host']}}" 
+                  delay=70
+                  port=22
+
+  - name: wait for boot process to finish
+    pause: minutes=1
+  
+### Extend/expand filesystems in logical volumes
+### in the staff and student filesystems
+  - name: resize the pv
+    shell: pvresize /dev/xvdz
+    
+  - name: extend logical volumes to each use half the space
+    lvol: 
+      vg: VGMagneticBU
+      lv: "{{ item }}"
+      size: 45%VG
+      shrink: no
+    with_items:
+    - lv_magstaff
+    - lv_magstu
+
+  - name: extend filesystems
+    filesystem:
+      dev: "/dev/VGMagneticBU/{{ item }}"
+      resizefs: yes
+      fstype: ext4
+    with_items:
+    - lv_magstaff
+    - lv_magstu
+  
+  roles:
+  - selinuxoff                #Turns off SELINUX
+  - localeUS                  #Sets local and America/Chicago timezone
+  - geerlingguy.repo-epel     #Installs EPEL repo. Jeff Geerling is awesome.
+  - ansible-role-httpd-master #Installs webserver similar to tatsu.
+  - ansible-role-firewalld    #Opens necessary ports. Need firewalld_zones in vars.
+
+  post_tasks:
+  - name: make sure home directories are mounted
+    stat:
+      path: /home
+      get_md5: False
+      get_checksum: False
+    register: homedirs
+
+#### CREATE USER DATABASE #######
+### uncomment to create users ###
+
+  - name: add users from included play
+    include: aws_addusers_include.yml
+
+#### Manage quotacheck #########
+  - name: turn quotas off
+    command: /sbin/quotaoff -av
+
+  - name: (re)create aquota.user file
+    command: /sbin/quotacheck -cu /quotadir
+
+  - name: turn quotas back on
+    command: /sbin/quotaon -avu
+
+  - name: create cron job to encourage quotacheck
+    blockinfile: 
+      dest: /etc/cron.daily/quotacheck
+      create: yes
+      state: present 
+      backup: yes
+      marker: "# {mark} ANSIBLE MANAGED BLOCK for quotacheck"
+      block: |
+        #!/bin/bash
+        touch /forcequotacheck
+
+
+#################################
+
+##Staff (csit,code groups) must have access to student bins perms (cron job)
+#If you keep the name the same, changes will propagate.
+#If you change the name, a new job will be created, old preserved.
+  - name: manage student bin permissions
+    cron:
+      name: "{{ item.name }}"
+      hour: 14
+      job: "{{ item.job }}" 
+    with_items:
+    - {name: 'job1name', job: 'job command' }
+
+##########PROGRAMMING PACKAGES######################
+##TODO: install pip3, python3, ipython notebook thing
+  - name: install python34
+    include: aws_python34.yml
+    creates: /bin/pip3
+
+##perl is installed by default
+
+  - name: Install gcc and related tools
+    package:
+      name: "@Development tools" 
+      state: present
+ 
