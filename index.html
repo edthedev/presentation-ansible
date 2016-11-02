@@ -115,11 +115,17 @@ Shells are limited by their environment and available commands. Ansible can do a
 ---
 
 ## Why Bother With Ansible?
-<img src="static\img\bigredbutton.png">
+
+```BASH
+  make update APP=goals BRANCH=hotfix_1.0.2
+```
+
+<img src="static\img\bigredbutton.png" style="height:400px">
 
 ???
 
-https://www.instagram.com/p/1tyRfbr463/?taken-by=edelaportev
+- https://www.instagram.com/p/1tyRfbr463/?taken-by=edelaportev
+- https://www.youtube.com/watch?v=aya7aWBn8Og
 
 ---
 
@@ -240,6 +246,12 @@ Maybe: Add a slide after this on configuring Ansible.
 
 #### Ansible Playbook - Deploy a Custom Web App
 
+Command
+```BASH
+  make update APP=goals
+  make fix APP=goals BRANCH=hotfix_1.0.2
+```
+
 Makefile
 ```BASH
 HOSTNAME=ansible-chicago-apps
@@ -263,11 +275,6 @@ fix:
 
 ```
 
-Command
-```BASH
-  make update APP=goals
-  make fix APP=goals BRANCH=hotfix_1.0.2
-```
 
 ???
 
