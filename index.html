@@ -236,6 +236,135 @@ Maybe: Add a slide after this on configuring Ansible.
 - You can have multiple roles paths...
 - Configure location of hosts file.
 
+---
+
+#### Ansible Playbook - Deploy a Custom Web App
+
+Makefile
+```BASH
+HOSTNAME=ansible-chicago-apps
+BRANCH=master
+PLAYBOOK=playbook.yml
+VERBOSE="-v"
+# VERBOSE="-vvvv"
+
+ifeq ($(APP),goals)
+	REPO=git@bitbucket.org:edthedev/goals.git
+	FQDN=mygoal.space
+endif
+
+update:
+	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) 
+	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+
+fix:
+	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) 
+	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+
+```
+
+---
+
+#### Ansible Playbook - Deploy a Custom Web App
+
+playbook.yml - Make the Target Become a Web Server
+```YAML
+- hosts: "{{ hosts }}"
+  vars:
+    - app_name: "{{ app }}"
+    - app_home: "/var/www/{{ app_name }}"
+    - app_wsgi: "{{ app_home }}/app.wsgi"
+    - git_branch: "{{ branch }}"
+  tasks:
+    - yum:
+        name="{{ item }}"
+        state=installed
+      with_items:
+        - "{{ httpd_service }}"
+        - epel-release
+        - git
+        - mod_wsgi
+        - python-pip
+        - openssl
+        - mod_ssl
+    - file:
+        state=link
+        src=/usr/share/zoneinfo/America/Chicago
+        dest=/etc/localtime
+        force=yes
+```
+
+???
+
+- Set variables at the top for reuse.
+- Pass in variables on command line.
+- I use this to more easily switch between Debian and CentOS
+- I tend to use a Makefile as my starting point. "make update"
+
+
+---
+
+#### Ansible Playbook - Deploy a Custom Web App
+
+playbook.yml - Install Our Custom Python App on the Target
+```YAML
+    - name: install app source code
+	  git: 
+        dest="{{ app_home }}" 
+        repo="{{ git_repo }}"
+        update=yes
+        force=yes
+        depth=1
+        version="{{ git_branch }}"
+        accept_hostkey=True
+      notify: restart_apache
+      tags: update
+    - name: app readable by apache
+      file: 
+        path="{{ app_home }}"
+        group="{{ httpd_group }}"
+        recurse=yes
+        mode=776
+    - name: install prerequisites
+	  pip: 
+        # executable="/usr/bin/pip-3.2"
+        requirements="{{ app_home }}/requirements.txt"
+```
+
+---
+
+
+#### Ansible Playbook - Deploy a Custom Web App
+
+playbook.yml - Configure Apache on the Target
+```YAML
+    - template: src="{{ conf_temp }}" dest="{{ httpd_sites }}/{{ app_name }}.conf"
+      notify: restart_apache
+      tags: update
+    - name: use new config file
+      lineinfile:
+        dest="{{ httpd_conf }}"
+        state=present
+        line="include {{ httpd_sites }}/{{ app_name }}.conf"
+      notify: restart_apache
+    - name: Listen on port 443
+      lineinfile:
+        dest="{{ httpd_conf }}"
+        state=present
+        line='Listen 443'
+      notify: restart_apache
+  handlers:
+    - name: restart_apache
+      service: name="{{ httpd_service }}" state=restarted
+      tags: fixed
+```
+
+---
+
+### First Break for Questions
+
+<img src="static/img/bigredbutton_open.png" />
+
 
 ---
 
@@ -476,135 +605,6 @@ Lesson: Ansible doesn't forget. Ansible removes surprises.
 ???
 
 Include a whole other file full of tasks.
-
----
-
-### First Break for Questions
-
-<img src="static/img/bigredbutton_open.png" />
-
----
-
-#### Ansible Playbook - Deploy a Custom Web App
-
-Makefile
-```BASH
-HOSTNAME=ansible-chicago-apps
-BRANCH=master
-PLAYBOOK=playbook.yml
-VERBOSE="-v"
-# VERBOSE="-vvvv"
-
-ifeq ($(APP),goals)
-	REPO=git@bitbucket.org:edthedev/goals.git
-	FQDN=mygoal.space
-endif
-
-update:
-	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) 
-	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
-
-fix:
-	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) 
-	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
-
-```
-
----
-
-#### Ansible Playbook - Deploy a Custom Web App
-
-playbook.yml - Make the Target Become a Web Server
-```YAML
-- hosts: "{{ hosts }}"
-  vars:
-    - app_name: "{{ app }}"
-    - app_home: "/var/www/{{ app_name }}"
-    - app_wsgi: "{{ app_home }}/app.wsgi"
-    - git_branch: "{{ branch }}"
-  tasks:
-    - yum:
-        name="{{ item }}"
-        state=installed
-      with_items:
-        - "{{ httpd_service }}"
-        - epel-release
-        - git
-        - mod_wsgi
-        - python-pip
-        - openssl
-        - mod_ssl
-    - file:
-        state=link
-        src=/usr/share/zoneinfo/America/Chicago
-        dest=/etc/localtime
-        force=yes
-```
-
-???
-
-- Set variables at the top for reuse.
-- Pass in variables on command line.
-- I use this to more easily switch between Debian and CentOS
-- I tend to use a Makefile as my starting point. "make update"
-
-
----
-
-#### Ansible Playbook - Deploy a Custom Web App
-
-playbook.yml - Install Our Custom Python App on the Target
-```YAML
-    - name: install app source code
-	  git: 
-        dest="{{ app_home }}" 
-        repo="{{ git_repo }}"
-        update=yes
-        force=yes
-        depth=1
-        version="{{ git_branch }}"
-        accept_hostkey=True
-      notify: restart_apache
-      tags: update
-    - name: app readable by apache
-      file: 
-        path="{{ app_home }}"
-        group="{{ httpd_group }}"
-        recurse=yes
-        mode=776
-    - name: install prerequisites
-	  pip: 
-        # executable="/usr/bin/pip-3.2"
-        requirements="{{ app_home }}/requirements.txt"
-```
-
----
-
-
-#### Ansible Playbook - Deploy a Custom Web App
-
-playbook.yml - Configure Apache on the Target
-```YAML
-    - template: src="{{ conf_temp }}" dest="{{ httpd_sites }}/{{ app_name }}.conf"
-      notify: restart_apache
-      tags: update
-    - name: use new config file
-      lineinfile:
-        dest="{{ httpd_conf }}"
-        state=present
-        line="include {{ httpd_sites }}/{{ app_name }}.conf"
-      notify: restart_apache
-    - name: Listen on port 443
-      lineinfile:
-        dest="{{ httpd_conf }}"
-        state=present
-        line='Listen 443'
-      notify: restart_apache
-  handlers:
-    - name: restart_apache
-      service: name="{{ httpd_service }}" state=restarted
-      tags: fixed
-```
 
 ---
 
