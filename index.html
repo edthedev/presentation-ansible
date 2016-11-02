@@ -255,13 +255,26 @@ endif
 
 update:
 	ansible-playbook --tags=update $(VERBOSE) $(PLAYBOOK) 
-	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+  --extra-vars="branch=$(BRANCH) hosts=$(HOSTNAME) git_repo=$(REPO) fqdn=$(FQDN)"
 
 fix:
 	ansible-playbook --tags=fixed $(VERBOSE) $(PLAYBOOK) 
-	--extra-vars="hosts=$(HOSTNAME) branch=$(BRANCH) git_repo=$(REPO) app_name=$(APP) fqdn=$(FQDN) conf_temp=$(HTTP_HTTPS)"
+  --extra-vars="branch=$(BRANCH) hosts=$(HOSTNAME) git_repo=$(REPO) fqdn=$(FQDN)"
 
 ```
+
+Command
+```BASH
+  make update APP=goals
+  make fix APP=goals BRANCH=hotfix_1.0.2
+```
+
+???
+
+- I use a Makefile to group up sets of options. 
+- There is probably a much more professional way to do this.
+- Fix is a tag I apply to a sub-set of the total steps in the Playbook
+- I use a Makefile as a way to let teammates see what commands I typically run
 
 ---
 
